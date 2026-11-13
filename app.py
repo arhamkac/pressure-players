@@ -36,7 +36,7 @@ def player_tab(top, full, balls, rating, raw_p, raw_n, label):
         st.plotly_chart(fig, use_container_width=True)
     if full is not None and raw_p in full.columns:
         st.subheader("Explorer")
-        min_b = st.slider("Minimum pressure balls", 30, 300, 50, 10, key=f"s_{label}")
+        min_b = st.slider("Minimum pressure balls", 30, 300, 30, 10, key=f"s_{label}")
         d = full[full[balls] >= min_b].copy()
         fig = px.scatter(d, x=raw_n, y=raw_p, size=balls, hover_name="player_name",
                          labels={raw_n: "Rating in ordinary situations",
@@ -46,7 +46,7 @@ def player_tab(top, full, balls, rating, raw_p, raw_n, label):
         st.plotly_chart(fig, use_container_width=True)
         st.caption("Above the dashed line = better under pressure than usual.")
         st.dataframe(d.sort_values(rating, ascending=False)
-                       [["player_name", balls, raw_n, raw_p, rating]].head(25),
+                       [["player_name", balls, raw_n, raw_p, rating]],
                      hide_index=True, use_container_width=True)
 
 t1, t2, t3, t4 = st.tabs(["Batters", "Bowlers", "Pressure definition", "Method and limits"])
