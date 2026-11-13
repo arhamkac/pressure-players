@@ -36,7 +36,8 @@ def player_tab(top, full, balls, rating, raw_p, raw_n, label):
         st.plotly_chart(fig, use_container_width=True)
     if full is not None and raw_p in full.columns:
         st.subheader("Explorer")
-        min_b = st.slider("Minimum pressure balls", 30, 300, 50, 10, key=f"s_{label}")
+        actual_min = int(full[balls].min())
+        min_b = st.slider("Minimum pressure balls", actual_min, 300, actual_min, 10, key=f"s_{label}")
         d = full[full[balls] >= min_b].copy()
         fig = px.scatter(d, x=raw_n, y=raw_p, size=balls, hover_name="player_name",
                          labels={raw_n: "Rating in ordinary situations",
