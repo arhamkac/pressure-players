@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-OUT = "data"
+OUT = "."
 st.set_page_config(page_title="Pressure Players", layout="wide")
 
 @st.cache_data
