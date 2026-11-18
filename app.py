@@ -38,6 +38,142 @@ PAKISTANI_PLAYERS = {
     "Haider Ali",
 }
 
+IPL_2027_RETAINED_PLAYERS = {
+    "Abdul Samad",
+    "Abhishek Sharma",
+    "Aiden Markram",
+    "Akeal Hosein",
+    "Angkrish Raghuvanshi",
+    "Aniket Verma",
+    "Anshul Kamboj",
+    "Anuj Rawat",
+    "Anukul Roy",
+    "Arshad Khan",
+    "Arshdeep Singh",
+    "Ashok Sharma",
+    "Ashutosh Sharma",
+    "Ashwani Kumar",
+    "Axar Patel",
+    "Ayush Badoni",
+    "Azmatullah Omarzai",
+    "Ben Dwarshuis",
+    "Bhuvneshwar Kumar",
+    "Brijesh Sharma",
+    "Brydon Carse",
+    "Cameron Green",
+    "Corbin Bosch",
+    "Dasun Shanaka",
+    "David Miller",
+    "Devdutt Padikkal",
+    "Dewald Brevis",
+    "Dhruv Jurel",
+    "Digvesh Rathi",
+    "Donovan Ferreira",
+    "Eshan Malinga",
+    "Glenn Phillips",
+    "Hardik Pandya",
+    "Harpreet Brar",
+    "Harshal Patel",
+    "Harshit Rana",
+    "Heinrich Klaasen",
+    "Ishan Kishan",
+    "Jacob Duffy",
+    "Jamie Overton",
+    "Jason Holder",
+    "Jasprit Bumrah",
+    "Jitesh Sharma",
+    "Jofra Archer",
+    "Jos Buttler",
+    "Josh Hazlewood",
+    "Josh Inglis",
+    "Kagiso Rabada",
+    "Kartik Sharma",
+    "Kartik Tyagi",
+    "Khaleel Ahmed",
+    "Krunal Pandya",
+    "Kuldeep Yadav",
+    "Kyle Jamieson",
+    "Liam Livingstone",
+    "Lokesh Rahul",
+    "Lungi Ngidi",
+    "Manish Pandey",
+    "Marco Jansen",
+    "Marcus Stoinis",
+    "Mayank Yadav",
+    "Mitchell Marsh",
+    "Mitchell Santner",
+    "Mohammed Shami",
+    "Mohammed Siraj",
+    "Mohsin Khan",
+    "Mukesh Choudhary",
+    "Mukesh Kumar",
+    "Mukul Choudhary",
+    "Naman Dhir",
+    "Namboori Tilak Varma",
+    "Nandre Burger",
+    "Nathan Ellis",
+    "Nicholas Pooran",
+    "Noor Ahmad",
+    "Nuwan Thushara",
+    "Patrick Cummins",
+    "Phil Salt",
+    "Prabhsimran Singh",
+    "Praful Hinge",
+    "Prasidh Krishna",
+    "Prince Yadav",
+    "Quinton de Kock",
+    "Rahul Chahar",
+    "Rahul Tewatia",
+    "Rajat Patidar",
+    "Ramandeep Singh",
+    "Rashid Khan",
+    "Rasikh Salam",
+    "Ravi Bishnoi",
+    "Ravindra Jadeja",
+    "Rinku Singh",
+    "Rishabh Pant",
+    "Riyan Parag",
+    "Rohit Sharma",
+    "Romario Shepherd",
+    "Rovman Powell",
+    "Ruturaj Gaikwad",
+    "Sai Kishore",
+    "Sai Sudharsan",
+    "Sakib Hussain",
+    "Salil Arora",
+    "Sam Curran",
+    "Sameer Rizvi",
+    "Sandeep Sharma",
+    "Sanju Samson",
+    "Sarfaraz Khan",
+    "Shahbaz Ahmed",
+    "Shardul Thakur",
+    "Shashank Singh",
+    "Sherfane Rutherford",
+    "Shivam Dube",
+    "Shreyas Iyer",
+    "Shubham Dubey",
+    "Shubman Gill",
+    "Sunil Narine",
+    "Suryakumar Yadav",
+    "Suyash Sharma",
+    "Tim David",
+    "Tristan Stubbs",
+    "Vaibhav Arora",
+    "Varun Chakravarthy",
+    "Venkatesh Iyer",
+    "Vipraj Nigam",
+    "Virat Kohli",
+    "Vyshak Kumar",
+    "Washington Sundar",
+    "William Jacks",
+    "Xavier Bartlett",
+    "Yash Dayal",
+    "Yash Thakur",
+    "Yashasvi Jaiswal",
+    "Yuzvendra Chahal",
+}
+
 BOWLERS_38_OR_OLDER = {
     "Sunil Narine",
     "Ehsan Khan",
@@ -45,34 +181,44 @@ BOWLERS_38_OR_OLDER = {
 }
 
 
-def exclude_pakistani_players(df):
+def exclude_ineligible_players(df):
     if df is None or "player_name" not in df.columns:
         return df
-    filtered = df[~df["player_name"].isin(PAKISTANI_PLAYERS)].copy()
+    excluded = PAKISTANI_PLAYERS | IPL_2027_RETAINED_PLAYERS
+    filtered = df[~df["player_name"].isin(excluded)].copy()
     if "Rank" in filtered.columns:
         filtered["Rank"] = range(1, len(filtered) + 1)
     return filtered
 
-all_bat = exclude_pakistani_players(load("all_batters.csv"))
-all_bowl = exclude_pakistani_players(load("all_bowlers.csv"))
-top_bat = exclude_pakistani_players(load("top_10_batters.csv"))
-top_bowl_source = exclude_pakistani_players(load("top_10_bowlers.csv"))
-top_bowl = top_bowl_source
-if all_bowl is not None:
+
+def build_top_ten(full, previous_top, balls, rating, additional_exclusions=()):
+    if full is None:
+        return exclude_ineligible_players(previous_top)
+
     pressure_matches = (
-        top_bowl_source.set_index("player_name")["pressure_matches"].to_dict()
-        if top_bowl_source is not None and "pressure_matches" in top_bowl_source.columns
+        previous_top.set_index("player_name")["pressure_matches"].to_dict()
+        if previous_top is not None and "pressure_matches" in previous_top.columns
         else {}
     )
-    eligible_bowlers = all_bowl[
-        (all_bowl["pressure_balls_bowled"] >= 30)
-        & ~all_bowl["player_name"].isin(BOWLERS_38_OR_OLDER)
-    ]
-    top_bowl = eligible_bowlers.nlargest(10, "shrunk_bowl_rating").copy()
-    top_bowl.insert(
-        6, "pressure_matches", top_bowl["player_name"].map(pressure_matches)
-    )
-    top_bowl["Rank"] = range(1, len(top_bowl) + 1)
+    eligible = full[full[balls] >= 30]
+    if additional_exclusions:
+        eligible = eligible[~eligible["player_name"].isin(additional_exclusions)]
+    top = eligible.nlargest(10, rating).copy()
+    top.insert(6, "pressure_matches", top["player_name"].map(pressure_matches))
+    top["Rank"] = range(1, len(top) + 1)
+    return top
+
+
+all_bat = exclude_ineligible_players(load("all_batters.csv"))
+all_bowl = exclude_ineligible_players(load("all_bowlers.csv"))
+top_bat = build_top_ten(
+    all_bat, load("top_10_batters.csv"),
+    "pressure_balls_faced", "shrunk_bat_rating",
+)
+top_bowl = build_top_ten(
+    all_bowl, load("top_10_bowlers.csv"),
+    "pressure_balls_bowled", "shrunk_bowl_rating", BOWLERS_38_OR_OLDER,
+)
 summary = load("pressure_summary.csv")
 
 st.title("SupeRR Selector S2: Most Reliable Players Under Pressure")
