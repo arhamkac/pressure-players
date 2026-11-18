@@ -174,6 +174,21 @@ IPL_2027_RETAINED_PLAYERS = {
     "Yuzvendra Chahal",
 }
 
+RETIRED_PLAYERS = {
+    "Ajinkya Rahane",
+    "Ambati Rayudu",
+    "Amit Mishra",
+    "Andre Russell",
+    "Dinesh Karthik",
+    "Dwayne Bravo",
+    "Karn Sharma",
+    "Kieron Pollard",
+    "Mahendra Singh Dhoni",
+    "Ravichandran Ashwin",
+    "Shikhar Dhawan",
+    "Vijay Shankar",
+}
+
 BOWLERS_38_OR_OLDER = {
     "Sunil Narine",
     "Ehsan Khan",
@@ -184,7 +199,7 @@ BOWLERS_38_OR_OLDER = {
 def exclude_ineligible_players(df):
     if df is None or "player_name" not in df.columns:
         return df
-    excluded = PAKISTANI_PLAYERS | IPL_2027_RETAINED_PLAYERS
+    excluded = PAKISTANI_PLAYERS | IPL_2027_RETAINED_PLAYERS | RETIRED_PLAYERS
     filtered = df[~df["player_name"].isin(excluded)].copy()
     if "Rank" in filtered.columns:
         filtered["Rank"] = range(1, len(filtered) + 1)
