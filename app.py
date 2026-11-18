@@ -11,8 +11,46 @@ def load(name):
     p = os.path.join(OUT, name)
     return pd.read_csv(p) if os.path.exists(p) else None
 
-top_bat, top_bowl = load("top_10_batters.csv"), load("top_10_bowlers.csv")
-all_bat, all_bowl = load("all_batters.csv"), load("all_bowlers.csv")
+PAKISTANI_PLAYERS = {
+    "Asif Ali",
+    "Mohammad Rizwan",
+    "Iftikhar Ahmed",
+    "Sahibzada Farhan",
+    "Salman Agha",
+    "Khushdil Shah",
+    "Faheem Ashraf",
+    "Tayyab Tahir",
+    "Mohammad Haris",
+    "Muhammad Irfan",
+    "Usman Khan",
+    "Hasan Nawaz",
+    "KM Asif",
+    "Shaheen Afridi",
+    "Mohammad Hasnain",
+    "Haris Rauf",
+    "Saim Ayub",
+    "Mohammad Wasim",
+    "Abbas Afridi",
+    "Naseem Shah",
+    "Shahnawaz Dhani",
+    "Abrar Ahmed",
+    "Salman Mirza",
+    "Haider Ali",
+}
+
+
+def exclude_pakistani_players(df):
+    if df is None or "player_name" not in df.columns:
+        return df
+    filtered = df[~df["player_name"].isin(PAKISTANI_PLAYERS)].copy()
+    if "Rank" in filtered.columns:
+        filtered["Rank"] = range(1, len(filtered) + 1)
+    return filtered
+
+all_bat = exclude_pakistani_players(load("all_batters.csv"))
+all_bowl = exclude_pakistani_players(load("all_bowlers.csv"))
+top_bat = exclude_pakistani_players(load("top_10_batters.csv"))
+top_bowl = exclude_pakistani_players(load("top_10_bowlers.csv"))
 summary = load("pressure_summary.csv")
 
 st.title("SupeRR Selector S2: Most Reliable Players Under Pressure")
