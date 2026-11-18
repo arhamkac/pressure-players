@@ -38,6 +38,12 @@ PAKISTANI_PLAYERS = {
     "Haider Ali",
 }
 
+BOWLERS_38_OR_OLDER = {
+    "Sunil Narine",
+    "Ehsan Khan",
+    "Dwayne Bravo",
+}
+
 
 def exclude_pakistani_players(df):
     if df is None or "player_name" not in df.columns:
@@ -50,7 +56,23 @@ def exclude_pakistani_players(df):
 all_bat = exclude_pakistani_players(load("all_batters.csv"))
 all_bowl = exclude_pakistani_players(load("all_bowlers.csv"))
 top_bat = exclude_pakistani_players(load("top_10_batters.csv"))
-top_bowl = exclude_pakistani_players(load("top_10_bowlers.csv"))
+top_bowl_source = exclude_pakistani_players(load("top_10_bowlers.csv"))
+top_bowl = top_bowl_source
+if all_bowl is not None:
+    pressure_matches = (
+        top_bowl_source.set_index("player_name")["pressure_matches"].to_dict()
+        if top_bowl_source is not None and "pressure_matches" in top_bowl_source.columns
+        else {}
+    )
+    eligible_bowlers = all_bowl[
+        (all_bowl["pressure_balls_bowled"] >= 30)
+        & ~all_bowl["player_name"].isin(BOWLERS_38_OR_OLDER)
+    ]
+    top_bowl = eligible_bowlers.nlargest(10, "shrunk_bowl_rating").copy()
+    top_bowl.insert(
+        6, "pressure_matches", top_bowl["player_name"].map(pressure_matches)
+    )
+    top_bowl["Rank"] = range(1, len(top_bowl) + 1)
 summary = load("pressure_summary.csv")
 
 st.title("SupeRR Selector S2: Most Reliable Players Under Pressure")
