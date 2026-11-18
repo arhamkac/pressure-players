@@ -189,24 +189,42 @@ RETIRED_PLAYERS = {
     "Vijay Shankar",
 }
 
-BOWLERS_38_OR_OLDER = {
+PLAYERS_38_OR_OLDER = {
+    "Adil Rashid",
+    "Angelo Mathews",
+    "Chris Jordan",
+    "Dawid Malan",
+    "David Warner",
+    "Faf du Plessis",
+    "Glenn Maxwell",
+    "Ishant Sharma",
+    "Matthew Wade",
+    "Mohammad Mahmudullah",
+    "Mohammad Nabi",
+    "Moeen Ali",
+    "Shakib Al Hasan",
+    "Sikandar Raza",
     "Sunil Narine",
     "Ehsan Khan",
-    "Dwayne Bravo",
+    "Umesh Yadav",
 }
-
 
 def exclude_ineligible_players(df):
     if df is None or "player_name" not in df.columns:
         return df
-    excluded = PAKISTANI_PLAYERS | IPL_2027_RETAINED_PLAYERS | RETIRED_PLAYERS
+    excluded = (
+        PAKISTANI_PLAYERS
+        | IPL_2027_RETAINED_PLAYERS
+        | RETIRED_PLAYERS
+        | PLAYERS_38_OR_OLDER
+    )
     filtered = df[~df["player_name"].isin(excluded)].copy()
     if "Rank" in filtered.columns:
         filtered["Rank"] = range(1, len(filtered) + 1)
     return filtered
 
 
-def build_top_ten(full, previous_top, balls, rating, additional_exclusions=()):
+def build_top_ten(full, previous_top, balls, rating):
     if full is None:
         return exclude_ineligible_players(previous_top)
 
@@ -216,9 +234,8 @@ def build_top_ten(full, previous_top, balls, rating, additional_exclusions=()):
         else {}
     )
     eligible = full[full[balls] >= 30]
-    if additional_exclusions:
-        eligible = eligible[~eligible["player_name"].isin(additional_exclusions)]
-    top = eligible.nlargest(10, rating).copy()
+    top = eligible.nlargest(10, rating)
+    top = top.copy()
     top.insert(6, "pressure_matches", top["player_name"].map(pressure_matches))
     top["Rank"] = range(1, len(top) + 1)
     return top
@@ -232,7 +249,7 @@ top_bat = build_top_ten(
 )
 top_bowl = build_top_ten(
     all_bowl, load("top_10_bowlers.csv"),
-    "pressure_balls_bowled", "shrunk_bowl_rating", BOWLERS_38_OR_OLDER,
+    "pressure_balls_bowled", "shrunk_bowl_rating",
 )
 summary = load("pressure_summary.csv")
 
